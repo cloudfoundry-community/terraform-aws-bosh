@@ -34,15 +34,7 @@ Terraform v0.3.6.dev
 
 Optionally for using the `Unattended Install` instruction, install git.
 
-### Easy install
-
-```bash
-mkdir my-terraform-aws-bosh
-cd my-terraform-aws-bosh
-terraform apply github.com/cloudfoundry-community/terraform-aws-bosh
-```
-
-### Unattended install
+### Setup
 
 ```bash
 git clone https://github.com/cloudfoundry-community/terraform-aws-bosh
@@ -51,6 +43,8 @@ cp terraform.tfvars.example terraform.tfvars
 ```
 
 Next, edit `terraform.tfvars` using your text editor and fill out the variables with your own values (AWS credentials, AWS region, etc).
+
+### Deploy
 
 ```bash
 make plan
