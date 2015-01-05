@@ -86,7 +86,7 @@ gem install bosh-bootstrap bosh_cli -f
 cat <<EOF > settings.yml
 ---
 bosh:
-  name: ${VPC}-keypair
+  name: bosh-${VPC}
 provider:
   name: aws
   credentials:
