@@ -6,6 +6,10 @@ This project will create an AWS VPC with subnets/route tables, a bastian VM (aka
 Architecture
 ------------
 
+This terraform project will deploy the following networking and instances (pretty diagram from https://ide.visualops.io):
+
+![](http://cl.ly/image/1u1F462W2W0p/terraform-aws-bosh_architecture.png)
+
 We rely on one other terraform repository:
 
 -	[terraform-aws-vpc](https://github.com/cloudfoundry-community/terraform-aws-vpc) repo creates the base VPC infrastructure, including a bastion subnet, the`microbosh` subnet, a NAT server, various route tables, and the VPC itself
