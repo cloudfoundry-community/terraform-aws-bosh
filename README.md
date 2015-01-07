@@ -1,7 +1,7 @@
 terraform-aws-bosh
 ==================
 
-This project will create an AWS VPC with subnets/route tables, a bastian VM (aka jumpbox/inception server), NAT (for outbound traffic), and a Micro BOSH.
+This project will create an AWS VPC with subnets/route tables, a bastion VM (aka jumpbox/inception server), NAT (for outbound traffic), and a Micro BOSH.
 
 Architecture
 ------------
@@ -14,9 +14,9 @@ We rely on one other terraform repository:
 
 -	[terraform-aws-vpc](https://github.com/cloudfoundry-community/terraform-aws-vpc) repo creates the base VPC infrastructure, including a bastion subnet, the`microbosh` subnet, a NAT server, various route tables, and the VPC itself
 
-This repository then creates a bastian VM and uses it to bootstrap a Micro BOSH (using the [bosh-bootstrap](https://github.com/cloudfoundry-community/bosh-bootstrap) project) into one of the private subnets.
+This repository then creates a bastion VM and uses it to bootstrap a Micro BOSH (using the [bosh-bootstrap](https://github.com/cloudfoundry-community/bosh-bootstrap) project) into one of the private subnets.
 
-To access the BOSH, first SSH into the bastian VM.
+To access the BOSH, first SSH into the bastion VM.
 
 Deploy
 ------
@@ -68,7 +68,7 @@ bastion_ip                           = 54.1.2.3
 After Initial Install
 ---------------------
 
-At the end of the output of the terraform run, there will be a section called `Outputs` that will have at least `bastion_ip` and an IP address. If not, or if you cleared the terminal without noting it, you can log into the AWS console and look for an instance called `bastian`, with the `bastion` security group. Use the public IP associated with that instance, and ssh in as the ubuntu user, using the ssh key listed as `aws_key_path` in your configuration (if you used the Unattended Install).
+At the end of the output of the terraform run, there will be a section called `Outputs` that will have at least `bastion_ip` and an IP address. If not, or if you cleared the terminal without noting it, you can log into the AWS console and look for an instance called `bastion`, with the `bastion` security group. Use the public IP associated with that instance, and ssh in as the ubuntu user, using the ssh key listed as `aws_key_path` in your configuration (if you used the Unattended Install).
 
 ```
 ssh -i ~/.ssh/example.pem ubuntu@54.1.2.3

@@ -52,7 +52,7 @@ resource "aws_instance" "bastion" {
 	}
 
   tags {
-   Name = "bastian"
+   Name = "bastion"
   }
 
   connection {
