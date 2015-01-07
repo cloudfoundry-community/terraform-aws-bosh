@@ -13,6 +13,9 @@ BASTION_ID=${8}
 # Prepare the jumpbox to be able to install ruby and git-based bosh and cf repos
 cd $HOME
 
+sudo apt-get update
+sudo apt-get install -y git vim-nox unzip
+
 # Generate the key that will be used to ssh between the inception server and the
 # microbosh machine
 ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
