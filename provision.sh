@@ -9,6 +9,7 @@ BOSH_SUBNET=${5}
 IPMASK=${6}
 BASTION_AZ=${7}
 BASTION_ID=${8}
+BOSH_TYPE=${9}
 
 # Prepare the jumpbox to be able to install ruby and git-based bosh and cf repos
 cd $HOME
@@ -67,9 +68,11 @@ address:
   ip: ${IPMASK}.1.4
 EOF
 
-bosh bootstrap deploy
+if [[ "${BOSH_TYPE}" = "ruby" ]]; then
+  bosh bootstrap deploy
 
-# We've hardcoded the IP of the microbosh machine, because convenience
-bosh -n target https://${IPMASK}.1.4:25555
-bosh login admin admin
+  # We've hardcoded the IP of the microbosh machine, because convenience
+  bosh -n target https://${IPMASK}.1.4:25555
+  bosh login admin admin
+fi
 popd
