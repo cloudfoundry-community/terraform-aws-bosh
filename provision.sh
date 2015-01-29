@@ -15,7 +15,7 @@ BOSH_TYPE=${9}
 cd $HOME
 
 sudo apt-get update
-sudo apt-get install -y git vim-nox unzip
+sudo apt-get install -y git vim-nox unzip mercurial
 
 # Generate the key that will be used to ssh between the inception server and the
 # microbosh machine
@@ -24,6 +24,16 @@ ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 # Install BOSH CLI, bosh-bootstrap, spiff and other helpful plugins/tools
 curl -s https://raw.githubusercontent.com/cloudfoundry-community/traveling-bosh/master/scripts/installer http://bosh-cli.cloudfoundry.org | sudo bash
 export PATH=$PATH:/usr/bin/traveling-bosh
+
+update_profile() {
+  file="$HOME/.bashrc"
+  source_line=$1
+
+  cat $file | grep "$source_line" > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "$source_line" >> $file
+  fi
+}
 
 # We use fog below, and bosh-bootstrap uses it as well
 cat <<EOF > ~/.fog
@@ -76,3 +86,29 @@ if [[ "${BOSH_TYPE}" = "ruby" ]]; then
   bosh login admin admin
 fi
 popd
+
+# Using go 1.3.3 as currently preferred go version for some BOSH projects
+cd /tmp
+rm -rf go*
+wget https://storage.googleapis.com/golang/go1.3.3.linux-amd64.tar.gz
+tar xfz go1.3.3.linux-amd64.tar.gz
+sudo mv go /usr/local/go
+update_profile 'export GOROOT=/usr/local/go'
+mkdir -p $HOME/go
+update_profile 'export GOPATH=$HOME/go'
+update_profile 'export PATH=$PATH:$GOROOT/bin'
+update_profile 'export PATH=$PATH:$GOPATH/bin'
+
+if [[ "${BOSH_TYPE}" = "golang" ]]; then
+  export GOROOT=/usr/local/go
+  export GOPATH=$HOME/go
+  export PATH=$PATH:$GOROOT/bin
+  export PATH=$PATH:$GOPATH/bin
+  mkdir -p $GOPATH/bin/
+  go get -d github.com/cloudfoundry/bosh-micro-cli
+  pushd $GOPATH/src/github.com/cloudfoundry/bosh-micro-cli
+  ./bin/build
+
+  mv out/bosh-micro $GOPATH/bin/
+  popd
+fi
