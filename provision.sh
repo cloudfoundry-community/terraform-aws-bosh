@@ -10,16 +10,21 @@ IPMASK=${6}
 BASTION_AZ=${7}
 BASTION_ID=${8}
 BOSH_TYPE=${9}
+BOSH_VERSION=${10}
+BOSH_SECURITY_GROUP=${11}
+AWS_KEYPAIR_NAME=${12}
 
 # Prepare the jumpbox to be able to install ruby and git-based bosh and cf repos
 cd $HOME
 
 sudo apt-get update
-sudo apt-get install -y git vim-nox unzip mercurial
+sudo apt-get install -y git vim-nox unzip mercurial -y
 
 # Generate the key that will be used to ssh between the inception server and the
 # microbosh machine
 ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+
+chmod 600 ~/.ssh/${AWS_KEYPAIR_NAME}.pem
 
 # Install BOSH CLI, bosh-bootstrap, spiff and other helpful plugins/tools
 curl -s https://raw.githubusercontent.com/cloudfoundry-community/traveling-bosh/master/scripts/installer http://bosh-cli.cloudfoundry.org | sudo bash
@@ -109,6 +114,84 @@ if [[ "${BOSH_TYPE}" = "golang" ]]; then
   pushd $GOPATH/src/github.com/cloudfoundry/bosh-micro-cli
   ./bin/build
 
+  # packages required to compile CPI's ruby
+  sudo apt-get install -y build-essential zlibc zlib1g-dev
+  # packages required to compile/install CPI
+  sudo apt-get install -y openssl libxslt-dev libxml2-dev libssl-dev \
+            libreadline6 libreadline6-dev libyaml-dev libsqlite3-dev sqlite3
+
+
   mv out/bosh-micro $GOPATH/bin/
+  popd
+
+  mkdir -p ~/workspace/stemcells
+  pushd ~/workspace/stemcells
+    wget https://s3.amazonaws.com/bosh-jenkins-artifacts/bosh-stemcell/aws/bosh-stemcell-${BOSH_VERSION}-aws-xen-ubuntu-trusty-go_agent.tgz
+    STEMCELL_PATH=$(pwd)/bosh-stemcell-${BOSH_VERSION}-aws-xen-ubuntu-trusty-go_agent.tgz
+  popd
+
+  mkdir -p ~/workspace/releases
+  pushd ~/workspace/releases
+    wget https://s3.amazonaws.com/bosh-jenkins-artifacts/release/bosh-${BOSH_VERSION}.tgz
+    RELEASE_PATH=$(pwd)/bosh-${BOSH_VERSION}.tgz
+
+    wget https://community-shared-boshreleases.s3.amazonaws.com/boshrelease-bosh-aws-cpi-1.tgz
+    CPI_PATH=$(pwd)/boshrelease-bosh-aws-cpi-1.tgz
+  popd
+
+  mkdir -p ~/workspace/deployments/microbosh
+  pushd ~/workspace/deployments/microbosh
+    cat <<EOF > bosh.yml
+---
+name: micro-aws-redis
+
+networks:
+- name: default
+  type: manual
+  cloud_properties:
+    subnet: $BOSH_SUBNET
+    range: $IPMASK.0.0/24
+    reserved: [$IPMASK.1.1-$IPMASK.1.3]
+    static: [$IPMASK.1.4]
+
+resource_pools:
+- name: default
+  network: default
+  cloud_properties:
+    instance_type: m3.large
+
+cloud_provider:
+  release: bosh-aws-cpi
+  ssh_tunnel:
+    host: $IPMASK.1.4
+    port: 22
+    user: vcap
+    private_key: /home/ubuntu/.ssh/$AWS_KEYPAIR_NAME.pem
+  registry: &registry
+    username: admin
+    password: admin
+    port: 6901
+    host: localhost
+  mbus: https://admin:admin@$IPMASK.1.4:6868
+  properties: # properties that are saved in registry by CPI for the agent
+    blobstore:
+      provider: local
+      path: /var/vcap/micro_bosh/data/cache
+    registry: *registry
+    ntp:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+    aws:
+      access_key_id: $AWS_KEY_ID
+      secret_access_key: $AWS_ACCESS_KEY
+      default_key_name: $AWS_KEYPAIR_NAME
+      default_security_groups: [$BOSH_SECURITY_GROUP]
+      region: $REGION
+      ec2_private_key: ~/.ssh/$AWS_KEYPAIR_NAME.pem
+    agent:
+      mbus: https://admin:admin@$IPMASK.1.4:6868
+EOF
+    bosh-micro deployment bosh.yml
+    bosh-micro deploy $STEMCELL_PATH $CPI_PATH $RELEASE_PATH
   popd
 fi
