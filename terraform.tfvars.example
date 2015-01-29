@@ -4,4 +4,4 @@ aws_key_path = "/Users/yourname/.ssh/bosh.pem" # full path
 aws_key_name = "bosh"
 aws_region = "us-east-1"
 network = "10.10"
-bosh_type = "ruby" # or "none"; soon "golang"
+bosh_type = "ruby" # via bosh-bootstrap; or "none" or "golang" for new bosh-micro-cli & external CPI
