@@ -42,6 +42,63 @@ output "aws_key_path" {
 	value = "${var.aws_key_path}"
 }
 
+resource "aws_security_group", "bosh" {
+	name = "bosh-${var.offset}-${var.aws_vpc_id}"
+	description = "BOSH"
+	vpc_id = "${var.aws_vpc_id}"
+
+	ingress {
+		from_port = 22
+		to_port = 22
+		protocol = "tcp"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+
+	ingress {
+		from_port = 6868
+		to_port = 6868
+		protocol = "tcp"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+
+	ingress {
+		from_port = 25555
+		to_port = 25555
+		protocol = "tcp"
+		cidr_blocks = ["0.0.0.0/0"]
+	}
+
+	ingress {
+		cidr_blocks = ["0.0.0.0/0"]
+		from_port = -1
+		to_port = -1
+		protocol = "icmp"
+	}
+
+	ingress {
+		from_port = 0
+		to_port = 65535
+		protocol = "tcp"
+		self = "true"
+	}
+
+	ingress {
+		from_port = 0
+		to_port = 65535
+		protocol = "udp"
+		self = "true"
+	}
+
+	tags {
+		Name = "bosh-${var.offset}-${var.aws_vpc_id}"
+	}
+
+}
+
+output "aws_security_group_bosh_name" {
+	value = "${aws_security_group.bosh.name}"
+}
+
 resource "aws_instance" "bastion" {
   ami = "${lookup(var.aws_ubuntu_ami, var.aws_region)}"
   instance_type = "m1.medium"
@@ -77,7 +134,7 @@ resource "aws_instance" "bastion" {
   provisioner "remote-exec" {
     inline = [
         "chmod +x /home/ubuntu/provision.sh",
-        "/home/ubuntu/provision.sh ${var.aws_access_key} ${var.aws_secret_key} ${var.aws_region} ${module.vpc.aws_vpc_id} ${module.vpc.aws_subnet_microbosh_id} ${var.network} ${aws_instance.bastion.availability_zone} ${aws_instance.bastion.id} ${var.bosh_type} ${var.bosh_version} ${module.vpc.aws_security_group_bastion_id} ${var.aws_key_name}",
+        "/home/ubuntu/provision.sh ${var.aws_access_key} ${var.aws_secret_key} ${var.aws_region} ${module.vpc.aws_vpc_id} ${module.vpc.aws_subnet_microbosh_id} ${var.network} ${aws_instance.bastion.availability_zone} ${aws_instance.bastion.id} ${var.bosh_type} ${var.bosh_version} ${module.vpc.aws_security_group_bosh_name} ${var.aws_key_name}",
     ]
   }
 

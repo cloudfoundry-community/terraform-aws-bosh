@@ -11,7 +11,7 @@ BASTION_AZ=${7}
 BASTION_ID=${8}
 BOSH_TYPE=${9}
 BOSH_VERSION=${10}
-BOSH_SECURITY_GROUP=${11}
+BOSH_SECURITY_GROUP_NAME=${11}
 AWS_KEYPAIR_NAME=${12}
 
 # Prepare the jumpbox to be able to install ruby and git-based bosh and cf repos
@@ -181,17 +181,119 @@ cloud_provider:
     ntp:
       - 0.pool.ntp.org
       - 1.pool.ntp.org
-    aws:
+    aws: &aws
       access_key_id: $AWS_KEY_ID
       secret_access_key: $AWS_ACCESS_KEY
       default_key_name: $AWS_KEYPAIR_NAME
-      default_security_groups: [$BOSH_SECURITY_GROUP]
+      default_security_groups: [$BOSH_SECURITY_GROUP_NAME]
       region: $REGION
       ec2_private_key: ~/.ssh/$AWS_KEYPAIR_NAME.pem
     agent:
       mbus: https://admin:admin@$IPMASK.1.4:6868
+
+jobs:
+- name: bosh
+  instances: 1
+  templates:
+  - name: nats
+    release: bosh
+  - name: postgres
+    release: bosh
+  - name: redis
+    release: bosh
+  - name: powerdns
+    release: bosh
+  - name: blobstore
+    release: bosh
+  - name: director
+    release: bosh
+  - name: health_monitor
+    release: bosh
+  - name: registry
+    release: bosh
+  networks:
+  - name: default
+    static_ips:
+    - 10.10.1.4
+  properties:
+    aws: *aws
+    nats:
+      user: "nats"
+      password: "nats"
+      auth_timeout: 3
+      address: "127.0.0.1"
+    postgres:
+      user: "postgres"
+      password: "postges"
+      host: "127.0.0.1"
+      database: "bosh"
+      port: 5432
+    redis:
+      address: "127.0.0.1"
+      password: "redis"
+      port: 25255
+    blobstore:
+      address: "127.0.0.1"
+      director:
+        user: "director"
+        password: "director"
+      agent:
+        user: "agent"
+        password: "agent"
+      provider: "dav"
+    dns:
+      address: 10.10.1.4
+      domain_name: "microbosh"
+      db:
+        user: "postgres"
+        password: "postges"
+        host: "127.0.0.1"
+        database: "bosh"
+        port: 5432
+        adapter: "postgres"
+    ntp: []
+    director:
+      address: "127.0.0.1"
+      name: "micro"
+      port: 25555
+      db:
+        user: "postgres"
+        password: "postges"
+        host: "127.0.0.1"
+        database: "bosh"
+        port: 5432
+        adapter: "postgres"
+      backend_port: 25556
+    registry:
+      address: 10.10.1.4
+      http:
+        user: "admin"
+        password: "admin"
+        port: 25777
+      db:
+        user: "postgres"
+        password: "postgres"
+        host: "127.0.0.1"
+        database: "bosh"
+        port: 5432
+        adapter: "postgres"
+    hm:
+      http:
+        user: "hm"
+        password: "hm"
+      director_account:
+        user: "admin"
+        password: "admin"
+      intervals:
+        log_stats: 300
+        agent_timeout: 180
+        rogue_agent_alert: 180
 EOF
     bosh-micro deployment bosh.yml
     bosh-micro deploy $STEMCELL_PATH $CPI_PATH $RELEASE_PATH
+
+    # We've hardcoded the IP of the microbosh machine, because convenience
+    bosh -n target https://${IPMASK}.1.4:25555
+    bosh login admin admin
   popd
 fi
