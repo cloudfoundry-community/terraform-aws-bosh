@@ -42,10 +42,10 @@ output "aws_key_path" {
 	value = "${var.aws_key_path}"
 }
 
-resource "aws_security_group", "bosh" {
-	name = "bosh-${var.offset}-${var.aws_vpc_id}"
+resource "aws_security_group" "bosh" {
+	name = "bosh-${var.network}-${module.vpc.aws_vpc_id}"
 	description = "BOSH"
-	vpc_id = "${var.aws_vpc_id}"
+	vpc_id = "${module.vpc.aws_vpc_id}"
 
 	ingress {
 		from_port = 22
@@ -90,7 +90,7 @@ resource "aws_security_group", "bosh" {
 	}
 
 	tags {
-		Name = "bosh-${var.offset}-${var.aws_vpc_id}"
+		Name = "bosh-${var.network}-${module.vpc.aws_vpc_id}"
 	}
 
 }
