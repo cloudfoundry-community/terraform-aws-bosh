@@ -11,6 +11,9 @@ variable "network" {
 variable "cf_admin_pass" {
   default = "c1oudc0wc1oudc0w"
 }
+variable "bosh_type" {
+  default = "ruby"
+}
 
 variable "aws_centos_ami" {
     default = {
