@@ -5,3 +5,4 @@
 crash.log
 .terraform/
 ssh
+aws_public_key.tf

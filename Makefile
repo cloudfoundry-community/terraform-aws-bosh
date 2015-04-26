@@ -3,8 +3,7 @@
 all: sshkey plan apply
 
 sshkey:
-	mkdir -p ssh
-	[[ ! -f ssh/id_rsa ]] && ssh-keygen -f ssh/id_rsa -N '' || echo Key pair already exists
+	./make_aws_public_key.sh
 
 plan:
 	terraform get -update

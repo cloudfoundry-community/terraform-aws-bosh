@@ -4,6 +4,15 @@ provider "aws" {
 	region = "${var.aws_region}"
 }
 
+resource "aws_key_pair" "deployer" {
+  key_name = "${var.aws_key_name}"
+  public_key = "${var.aws_public_key}"
+}
+
+output "aws_key_path" {
+	value = "${var.aws_key_path}"
+}
+
 module "vpc" {
   source = "github.com/cloudfoundry-community/terraform-aws-vpc"
   network = "${var.network}"
