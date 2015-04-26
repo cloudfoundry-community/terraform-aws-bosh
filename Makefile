@@ -1,6 +1,10 @@
 .PHONY: all plan apply destroy
 
-all: plan apply
+all: sshkey plan apply
+
+sshkey:
+	mkdir -p ssh
+	[[ ! -f ssh/id_rsa ]] && ssh-keygen -f ssh/id_rsa -N '' || echo Key pair already exists
 
 plan:
 	terraform get -update
