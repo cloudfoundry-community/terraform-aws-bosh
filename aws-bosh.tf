@@ -47,13 +47,9 @@ output "aws_subnet_bastion_availability_zone" {
   value = "${module.vpc.aws_subnet_bastion_availability_zone}"
 }
 
-output "aws_key_path" {
-	value = "${var.aws_key_path}"
-}
-
 resource "aws_instance" "bastion" {
   ami = "${lookup(var.aws_ubuntu_ami, var.aws_region)}"
-  instance_type = "m1.medium"
+  instance_type = "${var.aws_instance_type}"
   key_name = "${var.aws_key_name}"
   associate_public_ip_address = true
   security_groups = ["${module.vpc.aws_security_group_bastion_id}"]
@@ -78,12 +74,12 @@ resource "aws_instance" "bastion" {
     destination = "/home/ubuntu/provision.sh"
   }
 
-  provisioner "remote-exec" {
+  /*provisioner "remote-exec" {
     inline = [
         "chmod +x /home/ubuntu/provision.sh",
         "/home/ubuntu/provision.sh ${var.aws_access_key} ${var.aws_secret_key} ${var.aws_region} ${module.vpc.aws_vpc_id} ${module.vpc.aws_subnet_microbosh_id} ${var.network} ${aws_instance.bastion.availability_zone} ${aws_instance.bastion.id} ${var.bosh_type}",
     ]
-  }
+  }*/
 
 }
 

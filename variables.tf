@@ -10,6 +10,9 @@ variable "aws_public_key" {}
 variable "aws_region" {
   default = "us-west-2"
 }
+variable "aws_instance_type" {
+  default = "m3.medium"
+}
 variable "network" {
 	default = "10.10"
 }
