@@ -38,7 +38,7 @@ Optionally for using the `Unattended Install` instruction, install git.
 
 ```bash
 git clone https://github.com/cloudfoundry-community/terraform-aws-bosh
-cd terraform-aws-cf-bosh
+cd terraform-aws-bosh
 cp terraform.tfvars.example terraform.tfvars
 ```
 
