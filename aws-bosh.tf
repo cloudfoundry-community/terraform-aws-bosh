@@ -44,7 +44,7 @@ output "aws_key_path" {
 
 resource "aws_instance" "bastion" {
   ami = "${lookup(var.aws_ubuntu_ami, var.aws_region)}"
-  instance_type = "m1.medium"
+  instance_type = "m3.medium"
   key_name = "${var.aws_key_name}"
   associate_public_ip_address = true
   security_groups = ["${module.vpc.aws_security_group_bastion_id}"]
